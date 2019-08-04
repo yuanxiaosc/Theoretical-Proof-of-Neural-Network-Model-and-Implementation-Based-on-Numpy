@@ -202,56 +202,39 @@ $$
 
 首先证明对于一个样本的损失函数的梯度公式，用小写 $loss$ 表示，
 
-$$
-loss = -  \sum_{k=1}^K y_k^{(i)} \text{log } a_k
-$$
-
-假设目标类是第 $j$ 个类，那么 $y_k^{(j)}=1$，其余的 $y_k^{(q)}=0$ 。
-
 ![](矩阵形式的Softmax多分类模型/0.png)
 
 $$
-\frac{\partial loss}{\partial w_{kn}} = - \sum_{k=1}^K y_k^{(i)} \frac{\partial loss}{\partial a_j} \frac{\partial a_j}{\partial z_i} \frac{\partial z_i}{\partial w_{kn}}=-  y_k^{(j)} \frac{\partial loss}{\partial a_j} \frac{\partial a_j}{\partial z_i} \frac{\partial z_i}{\partial w_{kn}}=- \frac{\partial loss}{\partial a_j} \frac{\partial a_j}{\partial z_i} \frac{\partial z_i}{\partial w_{kn}}
+loss = -  \sum_{j} y_j \text{log } a_j
 $$
 
-$y_k^{(i)}$ 表示第 $i$ 个样本标签向量的第 $k$ 个分量，取值为 0 或者 1; $a_j$ 表示样本概率向量的第 $j$ 个分量；$z_i$ 表示打分向量的第 $i$ 个分量； $w_{kn}$ 表示连接样本 $x$ 向量第 $n$ 个分量与打分向量的第 $k$ 个向量。
-
 $$
-\frac{\partial loss}{\partial w_{kn}} = - \frac{\partial loss}{\partial a_j} \frac{\partial a_j}{\partial z_i} \frac{\partial z_i}{\partial w_{kn}} = - \frac{ 1}{a_j}\frac{\partial a_j}{\partial z_i} x_n
+ \delta_i = \frac{\partial loss}{\partial z_j} = - \sum_{j} y_j \frac{\partial loss}{\partial a_j} \frac{\partial a_j}{\partial z_i}=- \sum_{j} y_j \frac{ 1}{a_j} \frac{\partial a_j}{\partial z_i}
 $$
 
 显然，现在关键目标就是求 $\frac{\partial a_j}{\partial z_i}$，
 
 ![](矩阵形式的Softmax多分类模型/1.png)
 
-把上面两个式子进行变形，
 
-当 $j=i$ 时， 因为 $y_j=1$,
-
-$$\frac{\partial a_j}{\partial z_i}=a_j(1-a_j)=-a_j(a_j-y_j)$$
-
-
-当 $j\not= i$ 时，因为除了 $y_j=1$,其余 $y_i=0$,
-
-
-$$\frac{\partial a_j}{\partial z_i}=-a_ja_i=-a_j(a_i-y_i)$$
-
-所以无论 $j$ 与 $i$ 是否相等，我们都得到统一的形式，$k$ 在这里表示对应坐标的意思
-
-
-$$\frac{\partial a_j}{\partial z_k}=-a_j(a_k-y_k)$$
-
-所以，
-
+所以：
 $$
-\frac{\partial loss}{\partial w_{kn}} = - \frac{ 1}{a_j}\frac{\partial a_j}{\partial z_i} x_n=\frac{ 1}{a_j}a_j(a_k-y_k)x_n=(a_k-y_k)x_n
+\delta_i =- \sum_{j} y_j \frac{ 1}{a_j} \frac{\partial a_j}{\partial z_i}=\sum_{j \neq i}y_ia_i+y_i(a_i-1)
 $$
 
-由于 $w_{kn}$ 与 $x_n$ 的一一对应关系，上面的式子可以改写成向量形式，
+若 $y_i = 0$，则 $\sum_{j \neq i} y_i=1$，$\delta_i=\sum_{j \neq i}y_ia_i=a_i= a_i- y_i$
+若 $y_i = 1$，则 $\sum_{j \neq i} y_i=0$，$\delta_i=y_i(a_i-1)=a_i-1=a_i - y_i$
 
-$$
-\frac{\partial loss}{\partial w_{k}}=(a_k-y_k)x
-$$
+所以无论 $y_i$ 是否等于0，$\delta_i$ 都有同样的表达形式，即：
+
+$$\delta_i =a_i - y_i$$
+
+写成向量形式：
+
+$$\delta =a - y$$
+
+所以，$$\frac{\partial C}{\partial w^l_{jk}} = a^{l-1}_k \delta^l_j=x_k\delta_j=(a_i-y_i)x_k$$
+
 
 上面的式子只是针对一个样例 $x$ 的损失函数，我们再把 $m$ 样例的损失函数求和取平均就是最终要证明的式子，
 
